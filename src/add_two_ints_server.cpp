@@ -16,18 +16,14 @@ public:
     AddTwoIntsClient()
         : Node("add_two_ints_client")
     {
-        // TODO: Create the client here
         client_ = this->create_client<example_interfaces::srv::AddTwoInts>("add_two_ints");
     }
 
-    // TODO: Implement send_request method
     auto send_request(int64_t a, int64_t b)
     {
         auto request = std::make_shared<example_interfaces::srv::AddTwoInts::Request>();
         request->a = a;
         request->b = b;
-
-        // Wait for service
         while (!client_->wait_for_service(1s)) {
             if (!rclcpp::ok()) {
                 RCLCPP_ERROR(this->get_logger(), "Interrupted while waiting for the service. Exiting.");
@@ -37,9 +33,6 @@ public:
         }
 
         RCLCPP_INFO(this->get_logger(), "Service available, sending request...");
-
-        // JAZZY FIX: We must return a std::shared_future to match the error path above.
-        // In Jazzy, async_send_request returns a struct, so we access .future and .share() it.
         return client_->async_send_request(request).future.share();
     }
 
@@ -53,17 +46,13 @@ int main(int argc, char *argv[])
 
     auto client_node = std::make_shared<AddTwoIntsClient>();
 
-    // TODO:
-    // 1. Send a request with a=41 and b=1
     int64_t a = 41;
     int64_t b = 1;
     auto result_future = client_node->send_request(a, b);
 
-    // 2. Wait for the result using rclcpp::spin_until_future_complete
     if (rclcpp::spin_until_future_complete(client_node, result_future) ==
         rclcpp::FutureReturnCode::SUCCESS)
     {
-        // 3. Log: "Result: 41 + 1 = 42"
         auto result = result_future.get();
         RCLCPP_INFO(client_node->get_logger(), "Result: %ld + %ld = %ld", a, b, result->sum);
     }
